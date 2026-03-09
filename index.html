@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ECTS CMP Duck Viewer</title>
+    <title>ECTS CMP Ducks!</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,44 +12,126 @@
     />
     <style>
       #main_container {
-        margin-top: 2em;
+        margin-top: 4em;
+      }
+      .stat_text {
+        width: 120px;
+      }
+      .progress {
+        width: 300px;
       }
     </style>
   </head>
   <body>
     <div class="container" id="main_container">
       <div class="mb-3">
-        <label for="duckselect" class="form-label">please select a duck</label>
+        <label for="duckSelect" class="form-label">Please select a duck</label>
         <select
-          id="duckselect"
-          name="duckselect"
+          id="duckSelect"
+          name="duckSelect"
           class="form-select"
           aria-label="Default select example"
-        >
-          <option selected>Open this select menu</option>
-        </select>
+          placehoder="Select a duck"
+        ></select>
       </div>
       <div class="row">
         <div class="col-md-6"></div>
         <div class="col-md-6">
-            <!--name, assembler, adjectives, bio, stats-->
-            <div class="progress">
-                <div class="progress-bar bg-success" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+          <!--name, assembler, adjectives, bio, stats
+                    focus:10
+health 
+1
+intelligence
+: 
+14000
+kindness
+: 
+3000
+strength
+: 
+1000
+                    
+                    -->
+          <div
+            id="strength_bar"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Strength</div>
+            <div class="progress flex-grow-1">
+              <div
+                class="progress-bar bg-warning"
+                role="progressbar"
+                style="width: 75%"
+              >
+                <span class="stat_val_span" id="strength_val_span"></span>
+              </div>
             </div>
-            <div class="progress">
-                <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div
+            id="health_bar"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Health</div>
+            <div class="progress flex-grow-1">
+              <div
+                class="progress-bar bg-primary"
+                role="progressbar"
+                style="width: 75%"
+              >
+                <span class="stat_val_span" id="health_val_span"></span>
+              </div>
             </div>
-            <div class="progress">
-                <div class="progress-bar bg-warning" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div
+            id="intelligence_bar"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Intelligence</div>
+            <div class="progress flex-grow-1">
+              <div
+                class="progress-bar bg-success"
+                role="progressbar"
+                style="width: 75%"
+              >
+                <span class="stat_val_span" id="intelligence_val_span"></span>
+              </div>
             </div>
-            <div class="progress">
-                <div class="progress-bar bg-danger" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+
+          <div id="focus_bar" class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="stat_text">Focus</div>
+            <div class="progress flex-grow-1">
+              <div
+                class="progress-bar bg-danger"
+                role="progressbar"
+                style="width: 75%"
+              >
+                <span class="stat_val_span" id="focus_val_span"></span>
+              </div>
             </div>
+          </div>
+          <div
+            id="kindness_bar"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Kindness</div>
+            <div class="progress flex-grow-1">
+              <div
+                class="progress-bar bg-info"
+                role="progressbar"
+                style="width: 75%"
+              >
+                <span class="stat_val_span" id="kindness_val_span"></span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <script>
-      const duckSelect = document.getElementById("duckselect");
+      const STAT_MULTIPLIER = 10;
+      const duckSelect = document.getElementById("duckSelect");
+      let activeDuck;
       fetch("https://api.ducks.ects-cmp.com/ducks")
         .then((resp) => resp.json())
         .then((data) => {
@@ -63,11 +145,32 @@
             duckSelect.append(option);
           }
         });
+
       duckSelect.addEventListener("change", function () {
         //console.log(this.value);
         activeDuck = duckSelect.options[duckSelect.selectedIndex];
-        console.log(activeDuck.duck)
+        console.log(activeDuck.duck);
+        loadDuck(activeDuck.duck);
       });
+
+      function loadDuck(duck) {
+        let stat_labels = [
+          "strength",
+          "focus",
+          "health",
+          "intelligence",
+          "kindness",
+        ];
+        for (let stat of stat_labels) {
+          let elem = document.getElementById(`${stat}_bar`);
+          setStat(elem, duck.stats[stat]);
+        }
+      }
+      function setStat(element, value) {
+        element.querySelector(".progress-bar").style =
+          `width:${value * STAT_MULTIPLIER}%`;
+        element.querySelector(".stat_val_span").innerHTML = value;
+      }
     </script>
   </body>
 </html>
