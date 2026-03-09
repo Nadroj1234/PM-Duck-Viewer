@@ -20,6 +20,9 @@
       .progress {
         width: 300px;
       }
+      .info-cell {
+        width: calc(100% - 150px);
+      }
     </style>
   </head>
   <body>
@@ -37,21 +40,38 @@
       <div class="row">
         <div class="col-md-6"></div>
         <div class="col-md-6">
-          <!--name, assembler, adjectives, bio, stats
-                    focus:10
-health 
-1
-intelligence
-: 
-14000
-kindness
-: 
-3000
-strength
-: 
-1000
-                    
-                    -->
+          <div id="name_row" class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="stat_text">Name</div>
+            <div class="flex-grow-1 info-cell">
+              <span class="stat_val_span"></span>
+            </div>
+          </div>
+
+          <div
+            id="assembler_row"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Assembler</div>
+            <div class="flex-grow-1 info-cell">
+              <span class="stat_val_span"></span>
+            </div>
+          </div>
+          <div
+            id="adjectives_row"
+            class="d-flex align-items-center gap-2 flex-wrap"
+          >
+            <div class="stat_text">Adjectives</div>
+            <div class="flex-grow-1 info-cell">
+              <span class="stat_val_span"></span>
+            </div>
+          </div>
+          <div id="bio_row" class="d-flex align-items-center gap-2 flex-wrap">
+            <div class="stat_text">Bio</div>
+            <div class="flex-grow-1 info-cell">
+              <span class="stat_val_span"></span>
+            </div>
+          </div>
+
           <div
             id="strength_bar"
             class="d-flex align-items-center gap-2 flex-wrap"
@@ -63,7 +83,7 @@ strength
                 role="progressbar"
                 style="width: 75%"
               >
-                <span class="stat_val_span" id="strength_val_span"></span>
+                <span class="stat_val_span"></span>
               </div>
             </div>
           </div>
@@ -78,7 +98,7 @@ strength
                 role="progressbar"
                 style="width: 75%"
               >
-                <span class="stat_val_span" id="health_val_span"></span>
+                <span class="stat_val_span"></span>
               </div>
             </div>
           </div>
@@ -93,7 +113,7 @@ strength
                 role="progressbar"
                 style="width: 75%"
               >
-                <span class="stat_val_span" id="intelligence_val_span"></span>
+                <span class="stat_val_span"></span>
               </div>
             </div>
           </div>
@@ -106,7 +126,7 @@ strength
                 role="progressbar"
                 style="width: 75%"
               >
-                <span class="stat_val_span" id="focus_val_span"></span>
+                <span class="stat_val_span"></span>
               </div>
             </div>
           </div>
@@ -121,7 +141,7 @@ strength
                 role="progressbar"
                 style="width: 75%"
               >
-                <span class="stat_val_span" id="kindness_val_span"></span>
+                <span class="stat_val_span"></span>
               </div>
             </div>
           </div>
@@ -129,8 +149,8 @@ strength
       </div>
     </div>
     <script>
-      const STAT_MULTIPLIER = 10;
       const duckSelect = document.getElementById("duckSelect");
+      const STAT_MULTIPLIER = 10;
       let activeDuck;
       fetch("https://api.ducks.ects-cmp.com/ducks")
         .then((resp) => resp.json())
@@ -161,14 +181,22 @@ strength
           "intelligence",
           "kindness",
         ];
+        let row_labels = ["name", "assembler", "adjectives", "bio"];
         for (let stat of stat_labels) {
           let elem = document.getElementById(`${stat}_bar`);
-          setStat(elem, duck.stats[stat]);
+          displayStat(elem, duck.stats[stat]);
+        }
+        for (let row of row_labels) {
+          let elem = document.getElementById(`${row}_row`);
+          displayAttribute(elem, duck[row]);
         }
       }
-      function setStat(element, value) {
+      function displayAttribute(element, value) {
+        element.querySelector(".stat_val_span").innerHTML = value;
+      }
+      function displayStat(element, value) {
         element.querySelector(".progress-bar").style =
-          `width:${value * STAT_MULTIPLIER}%`;
+          `width: ${value * STAT_MULTIPLIER}%`;
         element.querySelector(".stat_val_span").innerHTML = value;
       }
     </script>
