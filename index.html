@@ -16,12 +16,44 @@
       }
       .stat_text {
         width: 120px;
+        font-weight: bold;
       }
       .progress {
         width: 300px;
       }
       .info-cell {
         width: calc(100% - 150px);
+      }
+      #duck_info_container > div {
+        border-bottom: 1px solid black;
+        padding: 1em auto;
+      }
+      #ThreeDuck {
+        min-height: 400px;
+        background-color: black;
+        img,
+        .placeholder {
+          display: block;
+        }
+      }
+      #ThreeDuck.waiting {
+        position: relative;
+        img {
+          position: absolute;
+          width: 20%;
+          top: 40%;
+          left: 40%;
+        }
+        img.microwave {
+          width: 80%;
+          top: 10%;
+          left: 10%;
+        }
+        .placeholder {
+          color: white;
+          text-align: center;
+          font-size: 2em;
+        }
       }
     </style>
   </head>
@@ -35,11 +67,23 @@
           class="form-select"
           aria-label="Default select example"
           placehoder="Select a duck"
-        ></select>
+        >
+          <option selected disabled>Please Select a Duck</option></select
+        >
       </div>
       <div class="row">
-        <div class="col-md-6"></div>
         <div class="col-md-6">
+          <div id="ThreeDuck" class="waiting">
+            <img
+              class="loading_duck"
+              src="./images/Loading_Duck 1.gif"
+              id="loading_img"
+              alt=""
+            />
+            <div class="placeholder"> Please select a duck to load </div>
+          </div>
+        </div>
+        <div class="col-md-6" id="duck_info_container">
           <div id="name_row" class="d-flex align-items-center gap-2 flex-wrap">
             <div class="stat_text">Name</div>
             <div class="flex-grow-1 info-cell">
@@ -81,7 +125,7 @@
               <div
                 class="progress-bar bg-warning"
                 role="progressbar"
-                style="width: 75%"
+                style="width: 0%"
               >
                 <span class="stat_val_span"></span>
               </div>
@@ -96,7 +140,7 @@
               <div
                 class="progress-bar bg-primary"
                 role="progressbar"
-                style="width: 75%"
+                style="width: 0%"
               >
                 <span class="stat_val_span"></span>
               </div>
@@ -111,7 +155,7 @@
               <div
                 class="progress-bar bg-success"
                 role="progressbar"
-                style="width: 75%"
+                style="width: 0%"
               >
                 <span class="stat_val_span"></span>
               </div>
@@ -124,7 +168,7 @@
               <div
                 class="progress-bar bg-danger"
                 role="progressbar"
-                style="width: 75%"
+                style="width: 0%"
               >
                 <span class="stat_val_span"></span>
               </div>
@@ -139,7 +183,7 @@
               <div
                 class="progress-bar bg-info"
                 role="progressbar"
-                style="width: 75%"
+                style="width: 0%"
               >
                 <span class="stat_val_span"></span>
               </div>
@@ -148,14 +192,25 @@
         </div>
       </div>
     </div>
-    <script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="./js/duckViewer.js"></script>
+    <script type="module">
+      import { DuckViewer } from "./js/duckViewer.js";
+      const viewer = new DuckViewer(document.getElementById("ThreeDuck"));
       const duckSelect = document.getElementById("duckSelect");
       const STAT_MULTIPLIER = 10;
       let activeDuck;
       fetch("https://api.ducks.ects-cmp.com/ducks")
         .then((resp) => resp.json())
         .then((data) => {
-          for (d of data) {
+          for (let d of data) {
             const option = document.createElement("option");
             option.innerHTML = `
                         ${d.name} (${d.assembler})
@@ -173,7 +228,11 @@
         loadDuck(activeDuck.duck);
       });
 
-      function loadDuck(duck) {
+      async function loadDuck(duck) {
+        document.getElementById("ThreeDuck").classList.add("waiting");
+        const duckImg = document.getElementById("loading_img");
+        duckImg.src = "./images/Microwave_Duck.gif";
+        duckImg.classList.add("microwave");
         let stat_labels = [
           "strength",
           "focus",
@@ -190,6 +249,9 @@
           let elem = document.getElementById(`${row}_row`);
           displayAttribute(elem, duck[row]);
         }
+
+        await viewer.showDuck(duck);
+        document.getElementById("ThreeDuck").classList.remove("waiting");
       }
       function displayAttribute(element, value) {
         element.querySelector(".stat_val_span").innerHTML = value;
