@@ -1,4 +1,7 @@
 import { DuckViewer } from "/js/duckViewer.js";
+const PRELOADED_DUCK = window.PRELOADED_DUCK || null;
+const SINGLE_DUCK_MODE = window.SINGLE_DUCK_MODE || false;
+
 const viewer = new DuckViewer(document.getElementById("ThreeDuck"));
 const duckSelect = document.getElementById("duckSelect");
 const startChatBtn = document.getElementById("startChatButton");
@@ -6,35 +9,50 @@ const chatBody = document.getElementById("chatBody");
 const chatForm = document.getElementById("chat_form");
 const chatInput = document.getElementById("chat_input");
 const chatMessages = document.getElementById("chat_messages");
+
 const STAT_MULTIPLIER = 10;
 let activeDuck;
 let conversation = [];
 
-fetch("https://api.ducks.ects-cmp.com/ducks")
-  .then((resp) => resp.json())
-  .then((data) => {
-    for (let d of data) {
-      const option = document.createElement("option");
-      option.innerHTML = `
+if (PRELOADED_DUCK) {
+  activeDuck = PRELOADED_DUCK;
+  resetDuckUI();
+} else if (duckSelect) {
+  fetch("https://api.ducks.ects-cmp.com/ducks")
+    .then((resp) => resp.json())
+    .then((data) => {
+      for (let d of data) {
+        const option = document.createElement("option");
+        option.innerHTML = `
                         ${d.name} (${d.assembler})
                         `;
-      option.value = d._id;
-      option.duck = d;
-      duckSelect.append(option);
-    }
-  });
+        option.value = d._id;
+        option.duck = d;
+        duckSelect.append(option);
+      }
+    });
 
-duckSelect.addEventListener("change", function () {
-  //console.log(this.value);
-  activeDuck = duckSelect.options[duckSelect.selectedIndex].duck;
-  console.log(activeDuck);
-  loadDuck(activeDuck);
+  duckSelect.addEventListener("change", async function () {
+    //console.log(this.value);
+    activeDuck = duckSelect.options[duckSelect.selectedIndex].duck;
+    //console.log(activeDuck);
+    await resetDuckUI();
+  });
+}
+
+async function resetDuckUI() {
+  await loadDuck(activeDuck);
   document.getElementById("chat_section").style.display = "block";
   startChatBtn.style.display = "block";
   chatBody.style.display = "none";
   chatMessages.innerHTML = "";
   conversation = [];
-});
+
+  if (SINGLE_DUCK_MODE) {
+    startChatBtn.style.display = "none";
+    await startDuckChat();
+  }
+}
 
 async function loadDuck(duck) {
   document.getElementById("ThreeDuck").classList.add("waiting");
@@ -42,13 +60,19 @@ async function loadDuck(duck) {
   duckImg.src = "./images/Microwave_Duck.gif";
   duckImg.classList.add("microwave");
   let stat_labels = ["strength", "focus", "health", "intelligence", "kindness"];
-  let row_labels = ["name", "assembler", "adjectives", "bio"];
+  let row_labels = ["id", "name", "assembler", "adjectives", "bio"];
   for (let stat of stat_labels) {
     let elem = document.getElementById(`${stat}_bar`);
     displayStat(elem, duck.stats[stat]);
   }
   for (let row of row_labels) {
     let elem = document.getElementById(`${row}_row`);
+    if (row === "id") {
+      displayDuckIdLink(elem, duck._id);
+    } else {
+      displayAttribute(elem, duck[row]);
+    }
+
     displayAttribute(elem, duck[row]);
   }
 
@@ -56,6 +80,13 @@ async function loadDuck(duck) {
   document.getElementById("ThreeDuck").classList.remove("waiting");
   document.getElementById("chat_section").style.display = "block";
 }
+function displayDuckIdLink(element, duckId) {
+  const span = element.querySelector(".stat_val_span");
+  const shareUrl = `${window.location.origin}/duck/${duckId}`;
+
+  span.innerHTML = `<a href="${shareUrl}">${duckId}</a>`;
+}
+
 function displayAttribute(element, value) {
   element.querySelector(".stat_val_span").innerHTML = value;
 }
